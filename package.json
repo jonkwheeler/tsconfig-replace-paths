@@ -1,0 +1,67 @@
+{
+  "name": "tsconfig-replace-paths",
+  "version": "0.0.1",
+  "description": "Replace absolute paths to relative paths for package compilation",
+  "author": "Jon Wheeler <jon.k.wheeler@gmail.com>",
+  "license": "MIT",
+  "main": "dist/commonjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "bin": {
+    "tscpaths": "dist/commonjs/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonkwheeler/tsconfig-replace-paths.git"
+  },
+  "config": {
+    "dirBuild": "./dist",
+    "dirCommonjs": "./dist/commonjs",
+    "dirEsm": "./dist/esm",
+    "dirSrc": "./src"
+  },
+  "publishConfig": {
+    "scope": "jonkwheeler",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build:cjs": "tsc -p ./tsconfig.cjs.json",
+    "build:esm": "tsc -p ./tsconfig.esm.json",
+    "build": "yarn build:esm && yarn build:cjs",
+    "nuke:all": "yarn nuke:node-nodules && yarn nuke:build",
+    "nuke:build:rebuild": "yarn nuke:build && yarn build",
+    "nuke:build": "rm -rf $npm_package_config_dirBuild",
+    "nuke:node-nodules": "rm -rf node_modules",
+    "release": "yarn release-it"
+  },
+  "bugs": {
+    "url": "https://github.com/jonkwheeler/tsconfig-replace-paths/issues"
+  },
+  "homepage": "https://github.com/jonkwheeler/tsconfig-replace-paths#readme",
+  "keywords": [
+    "typescript",
+    "tsc",
+    "tsconfig",
+    "paths",
+    "path",
+    "alias",
+    "aliases",
+    "compilation",
+    "compiler",
+    "resolver",
+    "resolve",
+    "absolute",
+    "relative",
+    "replace",
+    "transform"
+  ],
+  "devDependencies": {
+    "prettier": "^1.18.2",
+    "release-it": "^12.4.3",
+    "typescript": "^3.6.4"
+  },
+  "dependencies": {
+    "commander": "^3.0.2",
+    "globby": "^10.0.1"
+  }
+}
