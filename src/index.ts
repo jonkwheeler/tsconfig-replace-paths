@@ -41,7 +41,9 @@ const configFile = resolve(process.cwd(), project);
 console.log(`Using tsconfig: ${configFile}`);
 
 const exitingErr = (): any => {
-  throw new Error('--- exiting tscpaths due to parameters missing ---');
+  throw new Error(
+    '--- exiting tsconfig-replace-paths due to parameters missing ---'
+  );
 };
 
 const missingConfigErr = (property: string): any => {
@@ -80,36 +82,36 @@ if (!flagOut && tsConfigOutDir === '') {
 }
 
 // Are we going to use the flag or ts config for src?
-let tscpathsSrcDir: string;
+let usingSrcDir: string;
 if (flagSrc) {
   console.log('Using flag --src');
-  tscpathsSrcDir = resolve(flagSrc);
+  usingSrcDir = resolve(flagSrc);
 } else {
   console.log('Using compilerOptions.rootDir from your tsconfig');
-  tscpathsSrcDir = resolve(tsConfigRootDir);
+  usingSrcDir = resolve(tsConfigRootDir);
 }
-if (!tscpathsSrcDir) {
+if (!usingSrcDir) {
   missingDirectoryErr('rootDir', '--src');
 }
 
 // Log which src is being used
-console.log(`Using src: ${tscpathsSrcDir}`);
+console.log(`Using src: ${usingSrcDir}`);
 
 // Are we going to use the flag or ts config for out?
-let tscpathsOutDir: string;
+let usingOutDir: string;
 if (flagOut) {
   console.log('Using flag --out');
-  tscpathsOutDir = resolve(flagOut);
+  usingOutDir = resolve(flagOut);
 } else {
   console.log('Using compilerOptions.outDir from your tsconfig');
-  tscpathsOutDir = resolve(tsConfigOutDir);
+  usingOutDir = resolve(tsConfigOutDir);
 }
-if (!tscpathsOutDir) {
+if (!usingOutDir) {
   missingDirectoryErr('outDir', '--out');
 }
 
 // Log which out is being used
-console.log(`Using out: ${tscpathsOutDir}`);
+console.log(`Using out: ${usingOutDir}`);
 
 if (!baseUrl) {
   throw new Error('compilerOptions.baseUrl is not set');
@@ -117,16 +119,16 @@ if (!baseUrl) {
 if (!paths) {
   throw new Error('compilerOptions.paths is not set');
 }
-if (!tscpathsOutDir) {
+if (!usingOutDir) {
   throw new Error('compilerOptions.outDir is not set');
 }
-if (!tscpathsSrcDir) {
+if (!usingSrcDir) {
   throw new Error('compilerOptions.rootDir is not set');
 }
 
 verboseLog(`baseUrl: ${baseUrl}`);
-verboseLog(`rootDir: ${tscpathsSrcDir}`);
-verboseLog(`outDir: ${tscpathsOutDir}`);
+verboseLog(`rootDir: ${usingSrcDir}`);
+verboseLog(`outDir: ${usingOutDir}`);
 verboseLog(`paths: ${JSON.stringify(paths, null, 2)}`);
 
 const configDir = dirname(configFile);
@@ -134,11 +136,11 @@ const configDir = dirname(configFile);
 const basePath = resolve(configDir, baseUrl);
 verboseLog(`basePath: ${basePath}`);
 
-const outPath = tscpathsOutDir || resolve(basePath, tscpathsOutDir);
+const outPath = usingOutDir || resolve(basePath, usingOutDir);
 verboseLog(`outPath: ${outPath}`);
 
 const outFileToSrcFile = (x: string): string =>
-  resolve(tscpathsSrcDir, relative(outPath, x));
+  resolve(usingSrcDir, relative(outPath, x));
 
 const aliases = Object.keys(paths)
   .map((alias) => ({

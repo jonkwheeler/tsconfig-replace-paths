@@ -8,7 +8,7 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "bin": {
-    "tscpaths": "dist/commonjs/index.js"
+    "tsconfig-replace-paths": "dist/commonjs/index.js"
   },
   "repository": {
     "type": "git",
