@@ -1,5 +1,7 @@
 # tsconfig-replace-paths
-Replace absolute paths to relative paths for package compilation
+Replace absolute paths to relative paths for package compilation.
+
+I'll add to this over time. Submit PR's if you like. Tag me on them.
 
 ## Getting Started
 First, install `tsconfig-replace-paths` as devDependency using yarn or npm.
