@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 import * as program from 'commander';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { sync } from 'globby';
