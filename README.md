@@ -48,11 +48,16 @@ You can also setup a seperate tsconfig file just for types if you are also compi
 And then target that. Your final build script might look like this. You first compile to CommonJs using Babel, and then build the types using the Typescript Compiler, `tsc`, followed by fixing the paths them with `tsconfig-replace-paths`. If only `tsc` did this for you.
 
 ```json
+"config": {
+  "dirBuild": "./dist",
+  "dirSrc": "./src",
+},
 "scripts": {
-  "build:commonjs": "cross-env NODE_ENV=production BABEL_ENV=commonjs babel ......",
+  "build:commonjs": "yarn nuke:build && cross-env BABEL_ENV=commonjs babel $npm_package_config_dirSrc --out-dir $npm_package_config_dirBuild --extensions \".ts,.tsx,.js,.jsx\" --source-maps inline",
   "build:types:commonjs": "tsc --project tsconfig.types.cjs.json && tsconfig-replace-paths --project tsconfig.types.cjs.json",
   "build:types": "yarn build:types:commonjs",
   "build": "yarn build:commonjs && yarn build:types",
+  "nuke:build": "rm -rf $npm_package_config_dirBuild",
 }
 ```
 
