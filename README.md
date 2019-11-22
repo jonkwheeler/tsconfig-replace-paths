@@ -45,7 +45,7 @@ You can also setup a seperate tsconfig file just for types if you are also compi
 }
 ```
 
-And then target that. Your final build script might look like this. You first compile to CommonJs using Babel, and then build the types using the Typescript Compiler, `tsc`, followed by fixing the paths them with `tsconfig-replace-paths`. If only `tsc` did with for you.
+And then target that. Your final build script might look like this. You first compile to CommonJs using Babel, and then build the types using the Typescript Compiler, `tsc`, followed by fixing the paths them with `tsconfig-replace-paths`. If only `tsc` did this for you.
 
 ```json
 "scripts": {
