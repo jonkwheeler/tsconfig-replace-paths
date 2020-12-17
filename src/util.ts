@@ -1,4 +1,5 @@
-import { dirname, resolve } from 'path';
+import { dirname, resolve, parse } from 'path';
+import { readdirSync, lstatSync } from 'fs';
 
 /*
 "baseUrl": ".",
@@ -48,6 +49,22 @@ export const loadConfig = (file: string): ITSConfig => {
     },
   } = require(file) as IRawTSConfig;
 
+  const configDir = dirname(file);
+
+  const basePath = resolve(configDir, baseUrl!);
+
+  const files = readdirSync(basePath);
+
+  const aliases = files.reduce((r, f: any) => {
+    const _file = parse(f);
+    const name = _file.name;
+    const stats = lstatSync(resolve(basePath, f));
+    return {
+      ...r,
+      [`${name}${stats.isDirectory() ? '/*' : ''}`]: [`./${name}${stats.isDirectory() ? '/*' : ''}`],
+    };
+  }, {} as { [key: string]: string[] })
+
   const config: ITSConfig = {};
   if (baseUrl) {
     config.baseUrl = baseUrl;
@@ -58,9 +75,10 @@ export const loadConfig = (file: string): ITSConfig => {
   if (rootDir) {
     config.rootDir = rootDir;
   }
-  if (paths) {
-    config.paths = paths;
-  }
+  config.paths = {
+    ...paths || {},
+    ...aliases,
+  };
 
   if (ext) {
     const parentConfig = loadConfig(resolve(dirname(file), ext));
