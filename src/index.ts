@@ -7,10 +7,11 @@ import { dirname, relative, resolve } from 'path';
 import { loadConfig } from './util';
 
 program
-  .version('0.0.1')
+  .version('0.0.2')
   .option('-p, --project <file>', 'path to tsconfig.json')
   .option('-s, --src <path>', 'source root path')
   .option('-o, --out <path>', 'output root path')
+  .option('-q, --quiet', 'silence logs')
   .option('-v, --verbose', 'output logs');
 
 program.on('--help', () => {
@@ -25,8 +26,10 @@ const { project, src: flagSrc, out: flagOut, verbose = false } = program as {
   project?: string;
   src?: string | undefined;
   out?: string | undefined;
+  quiet?: boolean;
   verbose?: boolean;
 };
+
 
 if (!project) {
   throw new Error('--project must be specified');
@@ -38,9 +41,15 @@ const verboseLog = (...args: any[]): void => {
   }
 };
 
+function log(message) {
+  if (verbose || !quiet) {
+    console.log(message)
+  }
+}
+
 const configFile = resolve(process.cwd(), project);
 
-console.log(`Using tsconfig: ${configFile}`);
+log(`Using tsconfig: ${configFile}`);
 
 const exitingErr = (): any => {
   throw new Error(
@@ -86,10 +95,10 @@ if (!flagOut && tsConfigOutDir === '') {
 // Are we going to use the flag or ts config for src?
 let usingSrcDir: string;
 if (flagSrc) {
-  console.log('Using flag --src');
+  log('Using flag --src');
   usingSrcDir = resolve(flagSrc);
 } else {
-  console.log('Using compilerOptions.rootDir from your tsconfig');
+  log('Using compilerOptions.rootDir from your tsconfig');
   usingSrcDir = resolve(tsConfigRootDir);
 }
 if (!usingSrcDir) {
@@ -97,15 +106,15 @@ if (!usingSrcDir) {
 }
 
 // Log which src is being used
-console.log(`Using src: ${usingSrcDir}`);
+log(`Using src: ${usingSrcDir}`);
 
 // Are we going to use the flag or ts config for out?
 let usingOutDir: string;
 if (flagOut) {
-  console.log('Using flag --out');
+  log('Using flag --out');
   usingOutDir = resolve(flagOut);
 } else {
-  console.log('Using compilerOptions.outDir from your tsconfig');
+  log('Using compilerOptions.outDir from your tsconfig');
   usingOutDir = resolve(tsConfigOutDir);
 }
 if (!usingOutDir) {
@@ -113,7 +122,7 @@ if (!usingOutDir) {
 }
 
 // Log which out is being used
-console.log(`Using out: ${usingOutDir}`);
+log(`Using out: ${usingOutDir}`);
 
 if (!baseUrl) {
   throw new Error('compilerOptions.baseUrl is not set');
@@ -254,4 +263,4 @@ for (let i = 0; i < flen; i += 1) {
   }
 }
 
-console.log(`Replaced ${replaceCount} paths in ${changedFileCount} files`);
+log(`Replaced ${replaceCount} paths in ${changedFileCount} files`);
