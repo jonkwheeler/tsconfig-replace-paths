@@ -12,7 +12,7 @@
     "declaration": false,
     "checkJs": false,
     "removeComments": true,
-    "lib": ["es5", "es6", "es7", "es2017", "dom"],
+    "lib": ["esnext"],
     "typeRoots": ["node_modules/@types", "./types"],
     "sourceMap": true,
     "jsx": "react",
@@ -29,7 +29,8 @@
     },
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "stripInternal": true
   },
   "include": ["src"],
   "exclude": ["node_modules/**", "build", "scripts"]

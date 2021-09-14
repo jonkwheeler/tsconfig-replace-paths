@@ -1,13 +1,8 @@
 import { dirname, resolve } from 'path';
 
-/*
-"baseUrl": ".",
-"outDir": "lib",
-"paths": {
-  "src/*": ["src/*"]
-},
-*/
-
+/**
+ * @internal
+ */
 export interface IRawTSConfig {
   extends?: string;
   compilerOptions?: {
@@ -18,6 +13,9 @@ export interface IRawTSConfig {
   };
 }
 
+/**
+ * @internal
+ */
 export interface ITSConfig {
   baseUrl?: string;
   outDir?: string;
@@ -26,17 +24,20 @@ export interface ITSConfig {
   paths?: { [key: string]: string[] };
 }
 
+/**
+ * @internal
+ */
 export const mapPaths = (
   paths: { [key: string]: string[] },
   mapper: (x: string) => string
-): { [key: string]: string[] } => {
-  const dest = {} as { [key: string]: string[] };
-  Object.keys(paths).forEach((key) => {
-    dest[key] = paths[key].map(mapper);
-  });
-  return dest;
-};
+): { [key: string]: string[] } =>
+  Object.fromEntries(
+    Object.entries(paths).map(([key, value]) => [key, value.map(mapper)])
+  );
 
+/**
+ * @internal
+ */
 export const loadConfig = (file: string): ITSConfig => {
   const {
     extends: ext,

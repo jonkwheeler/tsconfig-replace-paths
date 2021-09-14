@@ -1,18 +1,18 @@
 #! /usr/bin/env node
 
-import * as program from 'commander';
+import { program } from 'commander';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { sync } from 'globby';
+import { globbySync } from 'globby';
 import { dirname, relative, resolve } from 'path';
 import { loadConfig } from './util';
 
 program
-  .version('0.0.2')
+  .version('0.0.6')
   .option('-p, --project <file>', 'path to tsconfig.json')
   .option('-s, --src <path>', 'source root path')
   .option('-o, --out <path>', 'output root path')
-  .option('-q, --quiet', 'silence logs')
-  .option('-v, --verbose', 'output logs');
+  .option('-v, --verbose', 'output logs')
+  .option('-q, --quiet', 'suppress logs');
 
 program.on('--help', () => {
   console.log(`
@@ -22,14 +22,20 @@ program.on('--help', () => {
 
 program.parse(process.argv);
 
-const { project, src: flagSrc, out: flagOut, verbose = false } = program as {
+const {
+  project,
+  src: flagSrc,
+  out: flagOut,
+  verbose = false,
+  quiet = false,
+} = program as {
   project?: string;
   src?: string | undefined;
   out?: string | undefined;
   quiet?: boolean;
   verbose?: boolean;
+  quiet?: boolean;
 };
-
 
 if (!project) {
   throw new Error('--project must be specified');
@@ -41,11 +47,11 @@ const verboseLog = (...args: any[]): void => {
   }
 };
 
-function log(message) {
+const log = (...args: any[]): void => {
   if (verbose || !quiet) {
-    console.log(message)
+    console.log(...args);
   }
-}
+};
 
 const configFile = resolve(process.cwd(), project);
 
@@ -240,10 +246,10 @@ const replaceAlias = (text: string, outFile: string): string =>
     );
 
 // import relative to absolute path
-const files = sync(`${outPath}/**/*.{js,jsx,ts,tsx}`, {
+const files = globbySync(`${outPath}/**/*.{js,jsx,ts,tsx}`, {
   dot: true,
   noDir: true,
-} as any).map((x) => resolve(x));
+} as any).map((x) => resolve(x.path));
 
 let changedFileCount = 0;
 
