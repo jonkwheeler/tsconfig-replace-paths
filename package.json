@@ -61,7 +61,7 @@
     "typescript": "^4.4.3"
   },
   "dependencies": {
-    "commander": "^8.2.0",
-    "globby": "^12.0.2"
+    "commander": "^3.0.2",
+    "globby": "^10.0.1"
   }
 }

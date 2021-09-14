@@ -13,7 +13,7 @@
     "listEmittedFiles": true,
     "listFiles": true,
     "module": "es6",
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "noEmit": false,
     "noErrorTruncation": true,
     "noFallthroughCasesInSwitch": true,
@@ -23,12 +23,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": "dist/esm",
-    "paths": {
-      "src/*": ["src/*"]
-    },
     "removeComments": true,
     "resolveJsonModule": false,
     "rootDir": "./src",
+    "paths": {
+      "~*": ["./src/*"]
+    },
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,

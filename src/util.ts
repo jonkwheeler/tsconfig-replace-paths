@@ -27,17 +27,6 @@ export interface ITSConfig {
 /**
  * @internal
  */
-export const mapPaths = (
-  paths: { [key: string]: string[] },
-  mapper: (x: string) => string
-): { [key: string]: string[] } =>
-  Object.fromEntries(
-    Object.entries(paths).map(([key, value]) => [key, value.map(mapper)])
-  );
-
-/**
- * @internal
- */
 export const loadConfig = (file: string): ITSConfig => {
   const {
     extends: ext,

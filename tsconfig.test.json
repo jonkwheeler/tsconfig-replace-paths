@@ -8,7 +8,7 @@
     "isolatedModules": false,
     "esModuleInterop": true,
     "module": "commonjs",
-    "outDir": "dist",
+    "outDir": "dist2",
     "declaration": false,
     "checkJs": false,
     "removeComments": true,

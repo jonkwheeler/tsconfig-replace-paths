@@ -1,8 +1,8 @@
 #! /usr/bin/env node
 
-import { program } from 'commander';
+import * as program from 'commander';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { globbySync } from 'globby';
+import { sync } from 'globby';
 import { dirname, relative, resolve } from 'path';
 import { loadConfig } from './util';
 
@@ -34,7 +34,6 @@ const {
   out?: string | undefined;
   quiet?: boolean;
   verbose?: boolean;
-  quiet?: boolean;
 };
 
 if (!project) {
@@ -246,10 +245,10 @@ const replaceAlias = (text: string, outFile: string): string =>
     );
 
 // import relative to absolute path
-const files = globbySync(`${outPath}/**/*.{js,jsx,ts,tsx}`, {
+const files = sync(`${outPath}/**/*.{js,jsx,ts,tsx}`, {
   dot: true,
   noDir: true,
-} as any).map((x) => resolve(x.path));
+} as any).map((x) => resolve(x));
 
 let changedFileCount = 0;
 
