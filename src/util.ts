@@ -63,7 +63,15 @@ export const loadConfig = (file: string): ITSConfig => {
   }
 
   if (ext) {
-    const parentConfig = loadConfig(resolve(dirname(file), ext));
+    const childConfigDirPath = dirname(file);
+    const parentConfigPath = resolve(childConfigDirPath, ext);
+    const parentConfigDirPath = dirname(parentConfigPath);
+    const parentConfig = loadConfig(parentConfigPath);
+
+    if (parentConfig.baseUrl) {
+      parentConfig.baseUrl = resolve(parentConfigDirPath, parentConfig.baseUrl);
+    }
+
     return {
       ...parentConfig,
       ...config,
