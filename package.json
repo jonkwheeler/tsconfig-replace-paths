@@ -62,6 +62,7 @@
   },
   "dependencies": {
     "commander": "^3.0.2",
-    "globby": "^10.0.1"
+    "globby": "^10.0.1",
+    "strip-json-comments": "3.1.1"
   }
 }

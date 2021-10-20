@@ -1,4 +1,6 @@
 import { dirname, resolve } from 'path';
+import { readFileSync } from 'fs';
+import * as stripJsonComments from 'strip-json-comments';
 
 /*
 "baseUrl": ".",
@@ -46,7 +48,9 @@ export const loadConfig = (file: string): ITSConfig => {
       rootDir: undefined,
       paths: undefined,
     },
-  } = require(file) as IRawTSConfig;
+  } = JSON.parse(
+    stripJsonComments(readFileSync(file).toString('utf8'))
+  ) as IRawTSConfig;
 
   const config: ITSConfig = {};
   if (baseUrl) {
