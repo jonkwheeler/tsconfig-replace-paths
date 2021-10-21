@@ -1,4 +1,5 @@
 import { dirname, resolve } from 'path';
+import stripJsonComments from './lib/strip-json-comments';
 
 /*
 "baseUrl": ".",
@@ -38,6 +39,9 @@ export const mapPaths = (
 };
 
 export const loadConfig = (file: string): ITSConfig => {
+  const fileToParse = require(file)
+  const parsedJsonFile = JSON.parse(stripJsonComments(JSON.stringify(fileToParse)))
+
   const {
     extends: ext,
     compilerOptions: { baseUrl, outDir, rootDir, paths } = {
@@ -46,7 +50,7 @@ export const loadConfig = (file: string): ITSConfig => {
       rootDir: undefined,
       paths: undefined,
     },
-  } = require(file) as IRawTSConfig;
+  } = parsedJsonFile as IRawTSConfig;
 
   const config: ITSConfig = {};
   if (baseUrl) {
