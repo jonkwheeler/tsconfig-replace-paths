@@ -1,5 +1,6 @@
-import { dirname, resolve } from 'path'
-import stripJsonComments from './lib/strip-json-comments'
+const path = require('path')
+const fs = require('fs')
+const JSON5 = require('json5')
 
 /*
 "baseUrl": ".",
@@ -39,8 +40,8 @@ export const mapPaths = (
 }
 
 export const loadConfig = (file: string): ITSConfig => {
-  const fileToParse = require(file)
-  const parsedJsonFile = JSON.parse(stripJsonComments(JSON.stringify(fileToParse)))
+  const fileToParse = fs.readFileSync(file)
+  const parsedJsonFile = JSON5.parse(fileToParse)
 
   const {
     extends: ext,
@@ -66,13 +67,19 @@ export const loadConfig = (file: string): ITSConfig => {
     config.paths = paths
   }
   if (ext) {
-    const childConfigDirPath = dirname(file)
-    const parentConfigPath = resolve(childConfigDirPath, ext)
-    const parentConfigDirPath = dirname(parentConfigPath)
-    const parentConfig = loadConfig(parentConfigPath)
+    const childConfigDirPath = path.dirname(file)
+    const parentConfigPath = path.resolve(childConfigDirPath, ext)
+    const parentConfigDirPath = path.dirname(parentConfigPath)
+    const currentExtension = path.extname(parentConfigDirPath)
+    const parentExtendedConfigFile = path.format({
+      name: parentConfigPath,
+      ext: currentExtension === '' ? '.json' : currentExtension,
+    })
+
+    const parentConfig = loadConfig(parentExtendedConfigFile)
 
     if (parentConfig.baseUrl) {
-      parentConfig.baseUrl = resolve(parentConfigDirPath, parentConfig.baseUrl)
+      parentConfig.baseUrl = path.resolve(parentConfigDirPath, parentConfig.baseUrl)
     }
 
     return {
