@@ -62,12 +62,13 @@ And then target that. Your final build script might look like this. You first co
 ```
 
 ## Options
-| flag         | description                                                                          |
-| ------------ | ------------------------------------------------------------------------------------ |
-| -p --project | project configuration file (tsconfig.json)                                           |
-| -s --src     | source code root directory (overrides the tsconfig provided)                         |
-| -o --out     | output directory of transpiled code (tsc --outDir) (overrides the tsconfig provided) |
-| -v --verbose | console.log all the events                                                           |
+| flag         | description                                                                          | default      |
+| ------------ | ------------------------------------------------------------------------------------ | ------------ |
+| -p --project | project configuration file (tsconfig.json)                                           | undefined    |
+| -s --src     | source code root directory (overrides the tsconfig provided)                         | undefined    |
+| -o --out     | output directory of transpiled code (tsc --outDir) (overrides the tsconfig provided) | undefined    |
+| -v --verbose | console.log all the events                                                           | false        |
+| -q --quiet   | suppress all logs                                                                    | true         |
 
 ## Inspired by
 [tsconfig-paths](https://github.com/dividab/tsconfig-paths) and [tscpaths](https://github.com/joonhocho/tscpaths)
