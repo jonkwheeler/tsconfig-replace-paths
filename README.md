@@ -1,27 +1,32 @@
 # tsconfig-replace-paths
+
 Replace absolute paths to relative paths for package compilation.
 
 I'll add to this over time. Submit PR's if you like. Tag me on them.
 
 ## Getting Started
+
 First, install `tsconfig-replace-paths` as devDependency using yarn or npm.
 
 ```sh
 yarn add -D tsconfig-replace-paths
 ```
+
 or
+
 ```sh
 npm install --save-dev tsconfig-replace-paths
 ```
 
 ## Add it to your build scripts in package.json
+
 ```json
 "scripts": {
   "build": "tsc --project tsconfig.json && tsconfig-replace-paths --project tsconfig.json",
 }
 ```
 
-------------
+---
 
 ## What if you want to build only the types?
 
@@ -62,13 +67,14 @@ And then target that. Your final build script might look like this. You first co
 ```
 
 ## Options
-| flag         | description                                                                          | default      |
-| ------------ | ------------------------------------------------------------------------------------ | ------------ |
-| -p --project | project configuration file (tsconfig.json)                                           | undefined    |
-| -s --src     | source code root directory (overrides the tsconfig provided)                         | undefined    |
-| -o --out     | output directory of transpiled code (tsc --outDir) (overrides the tsconfig provided) | undefined    |
-| -v --verbose | console.log all the events                                                           | false        |
-| -q --quiet   | suppress all logs                                                                    | true         |
+
+| flag         | description                                                                          | default   |
+| ------------ | ------------------------------------------------------------------------------------ | --------- |
+| -p --project | project configuration file (tsconfig.json)                                           | undefined |
+| -s --src     | source code root directory (overrides the tsconfig provided)                         | undefined |
+| -o --out     | output directory of transpiled code (tsc --outDir) (overrides the tsconfig provided) | undefined |
+| -v --verbose | console.log all the events                                                           | false     |
 
 ## Inspired by
+
 [tsconfig-paths](https://github.com/dividab/tsconfig-paths) and [tscpaths](https://github.com/joonhocho/tscpaths)
