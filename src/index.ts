@@ -41,6 +41,8 @@ const verboseLog = (...args: any[]): void => {
 
 const configFile = resolve(process.cwd(), project)
 
+const rootDir = resolve(process.cwd())
+
 verboseLog(`Using tsconfig: ${configFile}`)
 
 const exitingErr = (): any => {
@@ -63,7 +65,7 @@ const missingDirectoryErr = (directory: string, flag: string): any => {
 const returnedTsConfig = loadConfig(configFile)
 
 // Destructure only the necessary keys, and rename to give context
-const { baseUrl, paths, outDir: tsConfigOutDir = '', rootDir: tsConfigRootDir = '' } = returnedTsConfig
+const { baseUrl, paths, outDir: tsConfigOutDir = '', rootDir: tsConfigRootDir = rootDir } = returnedTsConfig
 
 // If no flagSrc or tsConfigRootDir, error
 if (!flagSrc && tsConfigRootDir === '') {
