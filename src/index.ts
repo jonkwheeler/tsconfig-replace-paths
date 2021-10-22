@@ -23,7 +23,7 @@ program.parse(process.argv)
 
 const {
   out: flagOut,
-  project,
+  project = 'tsconfig.json',
   src: flagSrc,
   verbose = false,
 } = program as {
@@ -31,10 +31,6 @@ const {
   project?: string
   src?: string | undefined
   verbose?: boolean
-}
-
-if (!project) {
-  throw new Error('--project must be specified')
 }
 
 const verboseLog = (...args: any[]): void => {
