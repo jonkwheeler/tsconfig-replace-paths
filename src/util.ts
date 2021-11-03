@@ -44,7 +44,7 @@ export const loadConfig = (file: string): ITSConfig => {
   const parsedJsonFile = JSON5.parse(fileToParse)
 
   const {
-    extends: ext,
+    extends: extendsPath,
     compilerOptions: { baseUrl, outDir, rootDir, paths } = {
       baseUrl: undefined,
       outDir: undefined,
@@ -66,15 +66,21 @@ export const loadConfig = (file: string): ITSConfig => {
   if (paths) {
     config.paths = paths
   }
-  if (ext) {
+  if (extendsPath) {
     const childConfigDirPath = path.dirname(file)
-    const parentConfigPath = path.resolve(childConfigDirPath, ext)
+    const parentConfigPath = path.resolve(childConfigDirPath, extendsPath)
     const parentConfigDirPath = path.dirname(parentConfigPath)
-    const currentExtension = path.extname(parentConfigDirPath)
-    const parentExtendedConfigFile = path.format({
+    const currentExtension = path.extname(parentConfigPath)
+
+    let parentExtendedConfigFile = path.format({
       name: parentConfigPath,
-      ext: currentExtension === '' ? '.json' : currentExtension,
+      ext: currentExtension === '' ? '.json' : '',
     })
+
+    /* Ensure without a doubt there's no double extension */
+    if (/\.json\.json$/.test(parentExtendedConfigFile)) {
+      parentExtendedConfigFile = parentExtendedConfigFile.replace(/\.json\.json$/, '.json')
+    }
 
     const parentConfig = loadConfig(parentExtendedConfigFile)
 
