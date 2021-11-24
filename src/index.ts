@@ -225,4 +225,4 @@ for (let i = 0; i < flen; i += 1) {
   }
 }
 
-console.log(`Replaced ${replaceCount} paths in ${changedFileCount} files`)
+verboseLog(`Replaced ${replaceCount} paths in ${changedFileCount} files`)
