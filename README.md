@@ -70,7 +70,7 @@ And then target that. Your final build script might look like this. You first co
 
 | flag         | description                                                                          | default   |
 | ------------ | ------------------------------------------------------------------------------------ | --------- |
-| -p --project | project configuration file (tsconfig.json)                                           | undefined |
+| -p --project | project configuration file (tsconfig.json)                                           | tsconfig.json |
 | -s --src     | source code root directory (overrides the tsconfig provided)                         | undefined |
 | -o --out     | output directory of transpiled code (tsc --outDir) (overrides the tsconfig provided) | undefined |
 | -v --verbose | console.log all the events                                                           | false     |
