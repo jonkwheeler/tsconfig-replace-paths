@@ -172,11 +172,19 @@ const absToRel = (modulePath: string, outFile: string): string => {
       for (let i = 0; i < len; i += 1) {
         const apath = aliasPaths[i]
         const moduleSrc = resolve(apath, modulePathRel)
-        if (existsSync(moduleSrc) || exts.some(ext => existsSync(moduleSrc + ext))) {
-          const rel = toRelative(dirname(srcFile), moduleSrc)
-
+        for (const ext of exts) {
+          const moduleWithExt = moduleSrc + ext;
+          if (!existsSync(moduleWithExt)) {
+            continue
+          }
+          const rel = toRelative(dirname(srcFile), moduleWithExt).replace(/\.[^/.]+$/, "")
           replaceCount += 1
-
+          verboseLog(`\treplacing '${modulePath}' -> '${rel}' referencing ${relative(basePath, moduleWithExt)}`)
+          return rel;
+        }
+        if (existsSync(moduleSrc)) {
+          const rel = toRelative(dirname(srcFile), moduleSrc)
+          replaceCount += 1
           verboseLog(`\treplacing '${modulePath}' -> '${rel}' referencing ${relative(basePath, moduleSrc)}`)
           return rel
         }
