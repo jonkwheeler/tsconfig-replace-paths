@@ -14,7 +14,6 @@
     "type": "git",
     "url": "https://github.com/jonkwheeler/tsconfig-replace-paths.git"
   },
-  "postinstall": "cd ./node_modules/tsconfig-replace-paths && yarn install && yarn build",
   "config": {
     "dirBuild": "./dist",
     "dirCommonjs": "./dist/commonjs",
@@ -33,7 +32,8 @@
     "nuke:build:rebuild": "yarn nuke:build && yarn build",
     "nuke:build": "rm -rf $npm_package_config_dirBuild",
     "nuke:node-nodules": "rm -rf node_modules",
-    "release": "yarn release-it"
+    "release": "yarn release-it",
+    "postinstall": "cd ./node_modules/tsconfig-replace-paths && yarn install && yarn build"
   },
   "bugs": {
     "url": "https://github.com/jonkwheeler/tsconfig-replace-paths/issues"
