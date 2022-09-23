@@ -3,7 +3,7 @@
 import * as program from 'commander'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { sync } from 'globby'
-import { dirname, relative, resolve } from 'path'
+import { dirname, relative, resolve, posix, sep } from 'path'
 import { loadConfig } from './util'
 
 program
@@ -201,8 +201,11 @@ const replaceAlias = (text: string, outFile: string): string =>
     .replace(requireRegex, (orig, matched) => replaceImportStatement(orig, matched, outFile))
     .replace(importRegex, (orig, matched) => replaceImportStatement(orig, matched, outFile))
 
+// posix path for sync
+const posixOutPath = posix.join(...outPath.split(sep), `/**/*.{js,jsx,ts,tsx}`);
+
 // import relative to absolute path
-const files = sync(`${outPath}/**/*.{js,jsx,ts,tsx}`, {
+const files = sync(posixOutPath, {
   dot: true,
   noDir: true,
 } as any).map(x => resolve(x))
