@@ -171,7 +171,11 @@ const absToRel = (modulePath: string, outFile: string): string => {
       const len = aliasPaths.length
       for (let i = 0; i < len; i += 1) {
         const apath = aliasPaths[i]
-        const moduleSrc = resolve(apath, modulePathRel)
+        let moduleSrc = resolve(apath, modulePathRel)
+        const moduleExt = exts.find(ext => moduleSrc.endsWith(ext))
+        if (moduleExt) {
+          moduleSrc = moduleSrc.replace(moduleExt, '')
+        }
         if (existsSync(moduleSrc) || exts.some(ext => existsSync(moduleSrc + ext))) {
           const rel = toRelative(dirname(srcFile), moduleSrc)
 
