@@ -177,7 +177,7 @@ const absToRel = (modulePath: string, outFile: string): string => {
           moduleSrc = moduleSrc.replace(moduleExt, '')
         }
         if (existsSync(moduleSrc) || exts.some(ext => existsSync(moduleSrc + ext))) {
-          const rel = toRelative(dirname(srcFile), moduleExt ? `${moduleSrc}.${moduleExt}` : moduleSrc)
+          const rel = toRelative(dirname(srcFile), moduleExt ? `${moduleSrc}${moduleExt}` : moduleSrc)
 
           replaceCount += 1
 
