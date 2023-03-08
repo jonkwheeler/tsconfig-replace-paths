@@ -3,7 +3,7 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
-    "lib": ["es5", "es6", "es7", "es2017", "dom"],
+    "lib": ["es5", "es6", "es7", "es2017", "dom", "ES2021.String"],
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "dist",

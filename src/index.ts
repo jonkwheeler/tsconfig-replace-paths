@@ -206,7 +206,7 @@ const replaceAlias = (text: string, outFile: string): string =>
     .replace(importRegex, (orig, matched) => replaceImportStatement(orig, matched, outFile))
 
 // import relative to absolute path
-const files = sync(`${outPath}/**/*.{js,jsx,ts,tsx}`, {
+const files = sync(`${outPath.replaceAll('\\', '/')}/**/*.{js,jsx,ts,tsx}`, {
   dot: true,
   noDir: true,
 } as any).map(x => resolve(x))
