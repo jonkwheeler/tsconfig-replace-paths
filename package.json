@@ -1,6 +1,6 @@
 {
   "name": "tsconfig-replace-paths",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Replace absolute paths to relative paths for package compilation",
   "author": "Jon Wheeler <jon.k.wheeler@gmail.com>",
   "license": "MIT",
