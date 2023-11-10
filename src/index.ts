@@ -174,7 +174,7 @@ const absToRel = (modulePath: string, outFile: string): string => {
         let moduleSrc = resolve(apath, modulePathRel)
         const moduleExt = exts.find(ext => moduleSrc.endsWith(ext))
         if (moduleExt) {
-          moduleSrc = moduleSrc.replace(moduleExt, '')
+          moduleSrc = moduleSrc.substring(0, moduleSrc.length - moduleExt.length)
         }
         if (existsSync(moduleSrc) || exts.some(ext => existsSync(moduleSrc + ext))) {
           const rel = toRelative(dirname(srcFile), moduleExt ? `${moduleSrc}${moduleExt}` : moduleSrc)
