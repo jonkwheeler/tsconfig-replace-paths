@@ -116,6 +116,7 @@ Exits with code `1` when replacements are still needed.
 
 | Problem | Fix |
 | ------- | --- |
+| `tsconfig not found at ...` | The error names the exact flag to run, e.g. `--project tsconfig.build.json` |
 | `compilerOptions.paths is not set` | Add `paths` mappings |
 | ENOENT for `@tsconfig/*` extends | Upgrade to >= 0.0.15 |
 | Imports still point at `.ts` files | Upgrade to >= 0.0.18; ensure compiled `.js` output exists |

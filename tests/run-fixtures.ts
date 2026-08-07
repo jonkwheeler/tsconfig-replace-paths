@@ -139,6 +139,19 @@ test('quiet mode suppresses summary output', function () {
   assert.strictEqual(result.stdout.trim(), '')
 })
 
+test('missing tsconfig suggests available configs', function () {
+  const fixtureDir = path.join(__dirname, 'missing-config')
+
+  const result = spawnSync(process.execPath, [cliPath], {
+    cwd: fixtureDir,
+    encoding: 'utf8',
+  })
+
+  assert.strictEqual(result.status, 1)
+  assert.match(result.stderr, /tsconfig not found/)
+  assert.match(result.stderr, /--project tsconfig\.build\.json/)
+})
+
 test('programmatic api replaces paths', function () {
   const fixtureDir = path.join(fixturesRoot, 'basic-alias')
   const beforeDir = path.join(fixtureDir, 'before', 'dist')

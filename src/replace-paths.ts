@@ -1,6 +1,6 @@
 import * as ts from 'typescript'
-import { readFileSync, readdirSync, writeFileSync } from 'fs'
-import { dirname, extname, join, resolve } from 'path'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { dirname, extname, join, relative, resolve } from 'path'
 import { loadConfig } from './config'
 import { buildAliases, createAliasResolver } from './resolve'
 import { ReplacePathsOptions, ReplacePathsResult, ResolvedContext } from './types'
@@ -15,6 +15,22 @@ function createVerboseLog(verbose: boolean, quiet: boolean): (...args: unknown[]
   }
 }
 
+function listConfigCandidates(configFile: string, cwd: string): string[] {
+  const configDir = dirname(configFile)
+  try {
+    return readdirSync(configDir)
+      .filter(function (entry) {
+        return /^tsconfig.*\.json$/.test(entry)
+      })
+      .sort()
+      .map(function (entry) {
+        return relative(cwd, join(configDir, entry))
+      })
+  } catch {
+    return []
+  }
+}
+
 function buildContext(options: ReplacePathsOptions): ResolvedContext {
   const cwd = options.cwd || process.cwd()
   const project = options.project || 'tsconfig.json'
@@ -22,6 +38,17 @@ function buildContext(options: ReplacePathsOptions): ResolvedContext {
   const verboseLog = createVerboseLog(Boolean(options.verbose), Boolean(options.quiet))
 
   verboseLog(`Using tsconfig: ${configFile}`)
+
+  if (!existsSync(configFile)) {
+    const candidates = listConfigCandidates(configFile, cwd)
+    let hint = ''
+    if (candidates.length === 1) {
+      hint = ` Found: ${candidates[0]} — use --project ${candidates[0]}`
+    } else if (candidates.length > 1) {
+      hint = ` Found: ${candidates.join(', ')} — pass one with --project (e.g. --project ${candidates[0]})`
+    }
+    throw new Error(`tsconfig not found at ${configFile}.${hint}`)
+  }
 
   const returnedTsConfig = loadConfig(configFile)
   const { baseUrl, paths, outDir: tsConfigOutDir, rootDir: tsConfigRootDir } = returnedTsConfig
