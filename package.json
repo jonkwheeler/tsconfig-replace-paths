@@ -1,15 +1,31 @@
 {
   "name": "tsconfig-replace-paths",
-  "version": "0.0.14",
+  "version": "0.0.18",
   "description": "Replace absolute paths to relative paths for package compilation",
   "author": "Jon Wheeler <jon.k.wheeler@gmail.com>",
   "license": "MIT",
   "main": "dist/commonjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/commonjs/index.js"
+    },
+    "./api": {
+      "import": "./dist/esm/api.js",
+      "require": "./dist/commonjs/api.js",
+      "types": "./dist/esm/api.d.ts"
+    }
+  },
   "bin": {
     "tsconfig-replace-paths": "dist/commonjs/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/jonkwheeler/tsconfig-replace-paths.git"
@@ -27,12 +43,14 @@
   "scripts": {
     "build:cjs": "tsc -p ./tsconfig.cjs.json",
     "build:esm": "tsc -p ./tsconfig.esm.json",
-    "build": "yarn build:esm && yarn build:cjs",
-    "nuke:all": "yarn nuke:node-nodules && yarn nuke:build",
-    "nuke:build:rebuild": "yarn nuke:build && yarn build",
+    "build": "pnpm run build:esm && pnpm run build:cjs",
+    "prepublishOnly": "pnpm run build",
+    "test": "pnpm run build && tsx --test tests/run-fixtures.ts",
+    "nuke:all": "pnpm run nuke:node-nodules && pnpm run nuke:build",
+    "nuke:build:rebuild": "pnpm run nuke:build && pnpm run build",
     "nuke:build": "rm -rf $npm_package_config_dirBuild",
     "nuke:node-nodules": "rm -rf node_modules",
-    "release": "yarn release-it"
+    "release": "pnpm exec release-it"
   },
   "bugs": {
     "url": "https://github.com/jonkwheeler/tsconfig-replace-paths/issues"
@@ -55,17 +73,21 @@
     "replace",
     "transform"
   ],
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.1.0",
-    "@typescript-eslint/parser": "^5.1.0",
-    "eslint": "^8.0.1",
-    "prettier": "^2.4.1",
-    "release-it": "^14.11.6",
-    "typescript": "^4.4.4"
-  },
   "dependencies": {
     "commander": "^3.0.2",
     "globby": "^10.0.1",
-    "json5": "^2.2.0"
-  }
+    "json5": "^2.2.3",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@tsconfig/node16": "^16.1.8",
+    "@types/node": "20",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "eslint": "^8.57.1",
+    "prettier": "^2.8.8",
+    "release-it": "^14.14.3",
+    "tsx": "^4.23.11"
+  },
+  "packageManager": "pnpm@9.15.9"
 }

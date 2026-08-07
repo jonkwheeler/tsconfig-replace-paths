@@ -2,14 +2,6 @@ const path = require('path')
 const fs = require('fs')
 const JSON5 = require('json5')
 
-/*
-"baseUrl": ".",
-"outDir": "lib",
-"paths": {
-  "src/*": ["src/*"]
-},
-*/
-
 export interface IRawTSConfig {
   extends?: string
   compilerOptions?: {
@@ -28,18 +20,42 @@ export interface ITSConfig {
   paths?: { [key: string]: string[] }
 }
 
-export const mapPaths = (
+export function mapPaths(
   paths: { [key: string]: string[] },
   mapper: (x: string) => string,
-): { [key: string]: string[] } => {
+): { [key: string]: string[] } {
   const dest = {} as { [key: string]: string[] }
-  Object.keys(paths).forEach(key => {
+  Object.keys(paths).forEach(function (key) {
     dest[key] = paths[key].map(mapper)
   })
   return dest
 }
 
-export const loadConfig = (file: string): ITSConfig => {
+function resolveConfigFile(configDir: string, extendsPath: string): string {
+  const relativeCandidate = path.resolve(configDir, extendsPath)
+  const currentExtension = path.extname(relativeCandidate)
+
+  let localConfigFile = path.format({
+    name: relativeCandidate,
+    ext: currentExtension === '' ? '.json' : '',
+  })
+
+  if (/\.json\.json$/.test(localConfigFile)) {
+    localConfigFile = localConfigFile.replace(/\.json\.json$/, '.json')
+  }
+
+  if (fs.existsSync(localConfigFile)) {
+    return localConfigFile
+  }
+
+  try {
+    return require.resolve(extendsPath, { paths: [configDir] })
+  } catch {
+    return localConfigFile
+  }
+}
+
+export function loadConfig(file: string): ITSConfig {
   const fileToParse = fs.readFileSync(file)
   const parsedJsonFile = JSON5.parse(fileToParse)
 
@@ -68,19 +84,8 @@ export const loadConfig = (file: string): ITSConfig => {
   }
   if (extendsPath) {
     const childConfigDirPath = path.dirname(file)
-    const parentConfigPath = path.resolve(childConfigDirPath, extendsPath)
-    const parentConfigDirPath = path.dirname(parentConfigPath)
-    const currentExtension = path.extname(parentConfigPath)
-
-    let parentExtendedConfigFile = path.format({
-      name: parentConfigPath,
-      ext: currentExtension === '' ? '.json' : '',
-    })
-
-    /* Ensure without a doubt there's no double extension */
-    if (/\.json\.json$/.test(parentExtendedConfigFile)) {
-      parentExtendedConfigFile = parentExtendedConfigFile.replace(/\.json\.json$/, '.json')
-    }
+    const parentExtendedConfigFile = resolveConfigFile(childConfigDirPath, extendsPath)
+    const parentConfigDirPath = path.dirname(parentExtendedConfigFile)
 
     const parentConfig = loadConfig(parentExtendedConfigFile)
 

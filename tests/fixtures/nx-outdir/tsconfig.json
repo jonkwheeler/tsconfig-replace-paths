@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "./apps/api/src",
+    "outDir": "./dist/apps/api",
+    "paths": {
+      "@lib/*": ["libs/dto/src/*"]
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "@service": ["service/index.service.js"]
+    }
+  }
+}

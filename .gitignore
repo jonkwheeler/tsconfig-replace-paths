@@ -4,5 +4,6 @@ node_modules
 package
 package-lock.json
 todo
-yarn-error.log
+pnpm-error.log
 dist
+tests/fixtures/**/dist

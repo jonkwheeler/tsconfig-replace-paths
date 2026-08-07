@@ -2,14 +2,12 @@
 
 Replace absolute paths to relative paths for package compilation.
 
-I'll add to this over time. Submit PR's if you like. Tag me on them.
-
 ## Getting Started
 
-First, install `tsconfig-replace-paths` as devDependency using yarn or npm.
+Install `tsconfig-replace-paths` as a dev dependency:
 
 ```sh
-yarn add -D tsconfig-replace-paths
+pnpm add -D tsconfig-replace-paths
 ```
 
 or
@@ -18,62 +16,103 @@ or
 npm install --save-dev tsconfig-replace-paths
 ```
 
-## Add it to your build scripts in package.json
+## Add it to your build scripts
 
 ```json
 "scripts": {
-  "build": "tsc --project tsconfig.json && tsconfig-replace-paths --project tsconfig.json",
-}
-```
-
----
-
-## What if you want to build only the types?
-
-You can also setup a seperate tsconfig file just for types if you are also compiling with Babel. Assuming you're compiling CommonJs, make a `tsconfig.types.cjs.json`. See examples of both CommonJs and ESM in the `examples` folder within repo.
-
-```json
-{
-  "extends": "./tsconfig",
-  "compilerOptions": {
-    "module": "commonjs",
-    "rootDir": "./src",
-    "outDir": "dist/commonjs",
-    "declaration": true,
-    "declarationMap": false,
-    "isolatedModules": false,
-    "noEmit": false,
-    "allowJs": false,
-    "emitDeclarationOnly": true
-  },
-  "exclude": ["**/*.test.ts"]
-}
-```
-
-And then target that. Your final build script might look like this. You first compile to CommonJs using Babel, and then build the types using the Typescript Compiler, `tsc`, followed by fixing the paths them with `tsconfig-replace-paths`. If only `tsc` did this for you.
-
-```json
-"config": {
-  "dirBuild": "./dist",
-  "dirSrc": "./src",
-},
-"scripts": {
-  "build:commonjs": "yarn nuke:build && cross-env BABEL_ENV=commonjs babel $npm_package_config_dirSrc --out-dir $npm_package_config_dirBuild --extensions \".ts,.tsx,.js,.jsx\" --source-maps inline",
-  "build:types:commonjs": "tsc --project tsconfig.types.cjs.json && tsconfig-replace-paths --project tsconfig.types.cjs.json",
-  "build:types": "yarn build:types:commonjs",
-  "build": "yarn build:commonjs && yarn build:types",
-  "nuke:build": "rm -rf $npm_package_config_dirBuild",
+  "build": "tsc --project tsconfig.json && tsconfig-replace-paths --project tsconfig.json"
 }
 ```
 
 ## Options
 
-| flag         | description                                                                          | default   |
-| ------------ | ------------------------------------------------------------------------------------ | --------- |
-| -p --project | project configuration file (tsconfig.json)                                           | undefined |
-| -s --src     | source code root directory (overrides the tsconfig provided)                         | undefined |
-| -o --out     | output directory of transpiled code (tsc --outDir) (overrides the tsconfig provided) | undefined |
-| -v --verbose | console.log all the events                                                           | false     |
+| flag | description | default |
+| ---- | ----------- | ------- |
+| `-p, --project` | project configuration file (tsconfig.json) | `tsconfig.json` |
+| `-s, --src` | source code root directory (overrides tsconfig) | from tsconfig |
+| `-o, --out` | output directory of transpiled code (overrides tsconfig) | from tsconfig |
+| `-v, --verbose` | log config, aliases, and each replacement | `false` |
+| `-q, --quiet` | suppress the summary line | `false` |
+| `-c, --check` | verify replacements without writing files; exits `1` if changes are needed | `false` |
+
+## Programmatic API
+
+```typescript
+import { replacePaths } from 'tsconfig-replace-paths/api'
+
+const result = replacePaths({
+  project: 'tsconfig.json',
+  verbose: false,
+  check: false,
+})
+
+console.log(result.replaceCount, result.changedFileCount)
+```
+
+## Common setups
+
+### Types-only build (with Babel)
+
+See `examples/tsconfig.types.cjs.json` and `examples/tsconfig.types.esm.json`.
+
+```json
+"scripts": {
+  "build:types": "tsc --project tsconfig.types.cjs.json && tsconfig-replace-paths --project tsconfig.types.cjs.json"
+}
+```
+
+### Node ESM with `.js` extensions in paths
+
+If your tsconfig maps aliases to `.js` paths for Node16/NodeNext ESM:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "@service": ["service/index.service.js"]
+    }
+  }
+}
+```
+
+`tsconfig-replace-paths` resolves the matching `.ts` source file and rewrites imports using the `.js` extension in the output.
+
+### Monorepos (NX and similar)
+
+When `rootDir` points at an app but aliases reference shared libs outside that directory, paths are resolved relative to the compiled output file — not back to `.ts` sources.
+
+### Extending shared configs from npm
+
+Configs like `"extends": "@tsconfig/node16/tsconfig.json"` are resolved from `node_modules` automatically.
+
+## CI check mode
+
+Verify paths are already rewritten without modifying files:
+
+```sh
+tsconfig-replace-paths --project tsconfig.json --check
+```
+
+Exits with code `1` when replacements are still needed.
+
+## Troubleshooting
+
+| Problem | Fix |
+| ------- | --- |
+| `compilerOptions.baseUrl is not set` | Add `baseUrl` to tsconfig |
+| `compilerOptions.paths is not set` | Add `paths` mappings |
+| ENOENT for `@tsconfig/*` extends | Upgrade to >= 0.0.15 |
+| Imports still point at `.ts` files | Upgrade to >= 0.0.18; ensure compiled `.js` output exists |
+| ESM alias not replaced | Ensure path mapping includes `.js` if using Node ESM resolution |
+
+## Development
+
+```sh
+pnpm install
+pnpm test
+pnpm run release
+```
 
 ## Inspired by
 
