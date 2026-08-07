@@ -2,6 +2,8 @@
 
 Replace absolute paths to relative paths for package compilation.
 
+Requires Node.js 18 or later. The only runtime dependency is `typescript`.
+
 ## Getting Started
 
 Install `tsconfig-replace-paths` as a dev dependency:
@@ -20,9 +22,11 @@ npm install --save-dev tsconfig-replace-paths
 
 ```json
 "scripts": {
-  "build": "tsc --project tsconfig.json && tsconfig-replace-paths --project tsconfig.json"
+  "build": "tsc && tsconfig-replace-paths"
 }
 ```
+
+All flags are optional when run from the directory containing `tsconfig.json`.
 
 ## Options
 
@@ -34,6 +38,10 @@ npm install --save-dev tsconfig-replace-paths
 | `-v, --verbose` | log config, aliases, and each replacement | `false` |
 | `-q, --quiet` | suppress the summary line | `false` |
 | `-c, --check` | verify replacements without writing files; exits `1` if changes are needed | `false` |
+| `-h, --help` | print usage | |
+| `-V, --version` | print version | |
+
+Static imports, `export ... from`, `require(...)`, and dynamic `import(...)` specifiers are all rewritten. Output files with `.js`, `.jsx`, `.ts`, `.tsx`, `.mjs`, `.cjs`, `.mts`, and `.cts` extensions are processed.
 
 ## Programmatic API
 
@@ -96,11 +104,18 @@ tsconfig-replace-paths --project tsconfig.json --check
 
 Exits with code `1` when replacements are still needed.
 
+## Migrating to 1.0
+
+- Node.js 18 or later is required.
+- Dynamic `import('@alias/...')` specifiers are now rewritten too. If your ESM output intentionally kept aliased dynamic imports, pin to `0.0.x`.
+- `compilerOptions.baseUrl` is no longer required; `paths` without `baseUrl` resolve relative to the tsconfig file (TypeScript >= 4.1 semantics).
+- `extends` arrays (TypeScript 5.0) are now supported.
+- Aliases resolving to `.d.ts` files now rewrite to the declaration file instead of a broken `.js` path.
+
 ## Troubleshooting
 
 | Problem | Fix |
 | ------- | --- |
-| `compilerOptions.baseUrl is not set` | Add `baseUrl` to tsconfig |
 | `compilerOptions.paths is not set` | Add `paths` mappings |
 | ENOENT for `@tsconfig/*` extends | Upgrade to >= 0.0.15 |
 | Imports still point at `.ts` files | Upgrade to >= 0.0.18; ensure compiled `.js` output exists |
