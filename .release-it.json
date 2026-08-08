@@ -1,5 +1,9 @@
 {
-  "non-interactive": false,
-  "requireCleanWorkingDir": true,
-  "buildCommand": "pnpm run nuke:build:rebuild"
+  "$schema": "https://unpkg.com/release-it@20/schema/release-it.json",
+  "git": {
+    "requireCleanWorkingDir": true
+  },
+  "hooks": {
+    "before:init": "pnpm run nuke:build:rebuild"
+  }
 }
