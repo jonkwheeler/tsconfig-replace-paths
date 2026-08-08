@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { parseArgs } from 'util'
-import { replacePaths } from './replace-paths'
+import { replacePaths } from './replace-paths.js'
 
 const HELP_TEXT = `
 Usage: tsconfig-replace-paths [options]

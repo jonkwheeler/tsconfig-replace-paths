@@ -1,9 +1,9 @@
 import * as ts from 'typescript'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { dirname, extname, join, relative, resolve } from 'path'
-import { loadConfig } from './config'
-import { buildAliases, createAliasResolver } from './resolve'
-import { ReplacePathsOptions, ReplacePathsResult, ResolvedContext } from './types'
+import { loadConfig } from './config.js'
+import { buildAliases, createAliasResolver } from './resolve.js'
+import { ReplacePathsOptions, ReplacePathsResult, ResolvedContext } from './types.js'
 
 const OUTPUT_FILE_EXTS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.mts', '.cts']
 

@@ -48,7 +48,7 @@
   },
   "scripts": {
     "build:cjs": "tsc -p ./tsconfig.cjs.json",
-    "build:esm": "tsc -p ./tsconfig.esm.json",
+    "build:esm": "tsc -p ./tsconfig.esm.json && node -e \"require('fs').writeFileSync('dist/esm/package.json', JSON.stringify({ type: 'module' }))\"",
     "build": "pnpm run build:esm && pnpm run build:cjs",
     "prepublishOnly": "pnpm run build",
     "test": "pnpm run build && tsx --test tests/run-fixtures.ts",

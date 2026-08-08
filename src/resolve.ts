@@ -1,6 +1,6 @@
 import { existsSync } from 'fs'
 import { dirname, join, relative, resolve } from 'path'
-import { AliasEntry, ResolvedContext } from './types'
+import { AliasEntry, ResolvedContext } from './types.js'
 
 const PROBE_EXTS = ['.js', '.jsx', '.ts', '.tsx', '.d.ts', '.mjs', '.cjs', '.mts', '.cts', '.json']
 const STRIP_EXTS = ['.d.ts', '.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.mts', '.cts', '.json']
