@@ -1,6 +1,6 @@
 {
   "name": "tsconfig-replace-paths",
-  "version": "0.0.18",
+  "version": "1.0.0",
   "description": "Replace absolute paths to relative paths for package compilation",
   "author": "Jon Wheeler <jon.k.wheeler@gmail.com>",
   "license": "MIT",
@@ -9,15 +9,21 @@
   "types": "dist/esm/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/esm/index.d.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/commonjs/index.js"
     },
     "./api": {
+      "types": "./dist/esm/api.d.ts",
       "import": "./dist/esm/api.js",
-      "require": "./dist/commonjs/api.js",
-      "types": "./dist/esm/api.d.ts"
-    }
+      "require": "./dist/commonjs/api.js"
+    },
+    "./package.json": "./package.json"
   },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
   "bin": {
     "tsconfig-replace-paths": "dist/commonjs/index.js"
   },
@@ -42,7 +48,7 @@
   },
   "scripts": {
     "build:cjs": "tsc -p ./tsconfig.cjs.json",
-    "build:esm": "tsc -p ./tsconfig.esm.json",
+    "build:esm": "tsc -p ./tsconfig.esm.json && node -e \"require('fs').writeFileSync('dist/esm/package.json', JSON.stringify({ type: 'module' }))\"",
     "build": "pnpm run build:esm && pnpm run build:cjs",
     "prepublishOnly": "pnpm run build",
     "test": "pnpm run build && tsx --test tests/run-fixtures.ts",
@@ -74,9 +80,6 @@
     "transform"
   ],
   "dependencies": {
-    "commander": "^3.0.2",
-    "globby": "^10.0.1",
-    "json5": "^2.2.3",
     "typescript": "^5.9.3"
   },
   "devDependencies": {

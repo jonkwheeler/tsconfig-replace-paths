@@ -1,16 +1,33 @@
 import * as ts from 'typescript'
-import { readFileSync, writeFileSync } from 'fs'
-import { sync } from 'globby'
-import { dirname, resolve } from 'path'
-import { loadConfig } from './config'
-import { buildAliases, createAliasResolver } from './resolve'
-import { ReplacePathsOptions, ReplacePathsResult, ResolvedContext } from './types'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { dirname, extname, join, relative, resolve } from 'path'
+import { loadConfig } from './config.js'
+import { buildAliases, createAliasResolver } from './resolve.js'
+import { ReplacePathsOptions, ReplacePathsResult, ResolvedContext } from './types.js'
+
+const OUTPUT_FILE_EXTS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.mts', '.cts']
 
 function createVerboseLog(verbose: boolean, quiet: boolean): (...args: unknown[]) => void {
   return function (...args: unknown[]): void {
     if (verbose && !quiet) {
       console.log(...args)
     }
+  }
+}
+
+function listConfigCandidates(configFile: string, cwd: string): string[] {
+  const configDir = dirname(configFile)
+  try {
+    return readdirSync(configDir)
+      .filter(function (entry) {
+        return /^tsconfig.*\.json$/.test(entry)
+      })
+      .sort()
+      .map(function (entry) {
+        return relative(cwd, join(configDir, entry))
+      })
+  } catch {
+    return []
   }
 }
 
@@ -22,38 +39,29 @@ function buildContext(options: ReplacePathsOptions): ResolvedContext {
 
   verboseLog(`Using tsconfig: ${configFile}`)
 
+  if (!existsSync(configFile)) {
+    const candidates = listConfigCandidates(configFile, cwd)
+    let hint = ''
+    if (candidates.length === 1) {
+      hint = ` Found: ${candidates[0]} — use --project ${candidates[0]}`
+    } else if (candidates.length > 1) {
+      hint = ` Found: ${candidates.join(', ')} — pass one with --project (e.g. --project ${candidates[0]})`
+    }
+    throw new Error(`tsconfig not found at ${configFile}.${hint}`)
+  }
+
   const returnedTsConfig = loadConfig(configFile)
-  const {
-    baseUrl,
-    paths,
-    outDir: tsConfigOutDir = '',
-    rootDir: tsConfigRootDir = cwd,
-  } = returnedTsConfig
-
-  if (!options.src && tsConfigRootDir === '') {
-    console.error('Whoops! Please set compilerOptions.rootDir in your tsconfig or supply a flag')
-    throw new Error('--- exiting tsconfig-replace-paths due to parameters missing ---')
-  }
-
-  if (!options.out && tsConfigOutDir === '') {
-    console.error('Whoops! Please set compilerOptions.outDir in your tsconfig or supply a flag')
-    throw new Error('--- exiting tsconfig-replace-paths due to parameters missing ---')
-  }
+  const { baseUrl, paths, outDir: tsConfigOutDir, rootDir: tsConfigRootDir } = returnedTsConfig
 
   let usingSrcDir: string
   if (options.src) {
     verboseLog('Using flag --src')
     usingSrcDir = resolve(cwd, options.src)
-  } else {
+  } else if (tsConfigRootDir) {
     verboseLog('Using compilerOptions.rootDir from your tsconfig')
-    usingSrcDir = resolve(cwd, tsConfigRootDir)
-  }
-
-  if (!usingSrcDir) {
-    console.error(
-      `Whoops! rootDir must be specified in your project => --project ${project}, or flagged with directory => --src './path'`,
-    )
-    throw new Error('--- exiting tsconfig-replace-paths due to parameters missing ---')
+    usingSrcDir = tsConfigRootDir
+  } else {
+    usingSrcDir = cwd
   }
 
   verboseLog(`Using src: ${usingSrcDir}`)
@@ -62,38 +70,29 @@ function buildContext(options: ReplacePathsOptions): ResolvedContext {
   if (options.out) {
     verboseLog('Using flag --out')
     usingOutDir = resolve(cwd, options.out)
-  } else {
+  } else if (tsConfigOutDir) {
     verboseLog('Using compilerOptions.outDir from your tsconfig')
-    usingOutDir = resolve(cwd, tsConfigOutDir)
-  }
-
-  if (!usingOutDir) {
-    console.error(
-      `Whoops! outDir must be specified in your project => --project ${project}, or flagged with directory => --out './path'`,
+    usingOutDir = tsConfigOutDir
+  } else {
+    throw new Error(
+      `outDir must be specified in your project => --project ${project}, or flagged with directory => --out './path'`,
     )
-    throw new Error('--- exiting tsconfig-replace-paths due to parameters missing ---')
   }
 
   verboseLog(`Using out: ${usingOutDir}`)
 
-  if (!baseUrl) {
-    throw new Error('compilerOptions.baseUrl is not set')
-  }
   if (!paths) {
     throw new Error('compilerOptions.paths is not set')
   }
 
-  verboseLog(`baseUrl: ${baseUrl}`)
+  const configDir = dirname(configFile)
+  const basePath = baseUrl ? resolve(configDir, baseUrl) : configDir
+
+  verboseLog(`baseUrl: ${baseUrl || '(unset, relative to tsconfig)'}`)
   verboseLog(`rootDir: ${usingSrcDir}`)
   verboseLog(`outDir: ${usingOutDir}`)
   verboseLog(`paths: ${JSON.stringify(paths, null, 2)}`)
-
-  const configDir = dirname(configFile)
-  const basePath = resolve(configDir, baseUrl)
-  const outPath = usingOutDir || resolve(basePath, usingOutDir)
-
   verboseLog(`basePath: ${basePath}`)
-  verboseLog(`outPath: ${outPath}`)
 
   const aliases = buildAliases(paths, basePath)
   verboseLog(`aliases: ${JSON.stringify(aliases, null, 2)}`)
@@ -102,75 +101,92 @@ function buildContext(options: ReplacePathsOptions): ResolvedContext {
     configFile: configFile,
     basePath: basePath,
     usingSrcDir: usingSrcDir,
-    outPath: outPath,
+    outPath: usingOutDir,
     aliases: aliases,
     verboseLog: verboseLog,
   }
 }
 
-function getScriptKind(fileName: string): ts.ScriptKind {
-  if (fileName.endsWith('.tsx') || fileName.endsWith('.jsx')) {
-    return ts.ScriptKind.TSX
+function walkOutputFiles(dir: string, acc: string[]): string[] {
+  const entries = readdirSync(dir, { withFileTypes: true })
+
+  for (let i = 0; i < entries.length; i += 1) {
+    const entry = entries[i]
+    const entryPath = join(dir, entry.name)
+    if (entry.isDirectory()) {
+      walkOutputFiles(entryPath, acc)
+    } else if (OUTPUT_FILE_EXTS.indexOf(extname(entry.name)) !== -1) {
+      acc.push(entryPath)
+    }
   }
-  if (fileName.endsWith('.ts')) {
-    return ts.ScriptKind.TS
+
+  return acc
+}
+
+function hasAnyPrefix(text: string, prefixes: string[]): boolean {
+  for (let i = 0; i < prefixes.length; i += 1) {
+    if (text.indexOf(prefixes[i]) !== -1) {
+      return true
+    }
   }
-  return ts.ScriptKind.JS
+  return false
+}
+
+interface Replacement {
+  start: number
+  end: number
+  text: string
+}
+
+function findClosingQuote(text: string, openPos: number): number {
+  const quote = text.charAt(openPos)
+  let i = openPos + 1
+  while (i < text.length) {
+    const ch = text.charAt(i)
+    if (ch === '\\') {
+      i += 2
+      continue
+    }
+    if (ch === quote) {
+      return i
+    }
+    i += 1
+  }
+  return -1
 }
 
 function collectReplacements(
-  sourceFile: ts.SourceFile,
+  text: string,
   outFile: string,
   absToRel: (modulePath: string, outFile: string) => string,
-): Array<{ start: number; end: number; text: string }> {
-  const replacements: Array<{ start: number; end: number; text: string }> = []
+): Replacement[] {
+  const replacements: Replacement[] = []
+  const refs = ts.preProcessFile(text, true, true).importedFiles
 
-  function visit(node: ts.Node): void {
-    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
-      const spec = node.moduleSpecifier
-      if (spec && ts.isStringLiteral(spec)) {
-        const matched = spec.text
-        const replacement = absToRel(matched, outFile)
-        if (replacement !== matched) {
-          replacements.push({
-            start: spec.getStart(sourceFile) + 1,
-            end: spec.getEnd() - 1,
-            text: replacement,
-          })
-        }
-      }
+  for (let i = 0; i < refs.length; i += 1) {
+    const ref = refs[i]
+    const matched = ref.fileName
+    const replacement = absToRel(matched, outFile)
+    if (replacement === matched) {
+      continue
     }
 
-    if (
-      ts.isCallExpression(node) &&
-      node.expression.kind === ts.SyntaxKind.Identifier &&
-      (node.expression as ts.Identifier).text === 'require' &&
-      node.arguments.length > 0 &&
-      ts.isStringLiteral(node.arguments[0])
-    ) {
-      const arg = node.arguments[0]
-      const matched = arg.text
-      const replacement = absToRel(matched, outFile)
-      if (replacement !== matched) {
-        replacements.push({
-          start: arg.getStart(sourceFile) + 1,
-          end: arg.getEnd() - 1,
-          text: replacement,
-        })
-      }
+    // ref.end is unreliable (computed from the unescaped specifier), so the
+    // closing quote is re-derived from ref.pos, which always points at the
+    // opening quote.
+    const start = ref.pos + 1
+    const end = findClosingQuote(text, ref.pos)
+    if (end === -1 || text.substring(start, end) !== matched) {
+      continue
     }
 
-    ts.forEachChild(node, visit)
+    replacements.push({ start: start, end: end, text: replacement })
   }
 
-  visit(sourceFile)
   return replacements
 }
 
-function applyReplacements(
-  text: string,
-  replacements: Array<{ start: number; end: number; text: string }>,
-): string {
+function applyReplacements(text: string, replacements: Replacement[]): string {
   replacements.sort(function (a, b) {
     return b.start - a.start
   })
@@ -183,27 +199,15 @@ function applyReplacements(
   return result
 }
 
-function replaceAliasInText(
-  text: string,
-  outFile: string,
-  absToRel: (modulePath: string, outFile: string) => string,
-): string {
-  const sourceFile = ts.createSourceFile(outFile, text, ts.ScriptTarget.Latest, true, getScriptKind(outFile))
-  const replacements = collectReplacements(sourceFile, outFile, absToRel)
-  return applyReplacements(text, replacements)
-}
-
 export function replacePaths(options: ReplacePathsOptions): ReplacePathsResult {
   const ctx = buildContext(options)
   const resolver = createAliasResolver(ctx)
   const quiet = Boolean(options.quiet)
   const check = Boolean(options.check)
 
-  const files = sync(`${ctx.outPath.replaceAll('\\', '/')}/**/*.{js,jsx,ts,tsx}`, {
-    dot: true,
-    noDir: true,
-  } as { dot: boolean; noDir: boolean }).map(function (x) {
-    return resolve(x)
+  const files = walkOutputFiles(ctx.outPath, [])
+  const prefixes = ctx.aliases.map(function (alias) {
+    return alias.prefix
   })
 
   const changedFiles: string[] = []
@@ -212,8 +216,13 @@ export function replacePaths(options: ReplacePathsOptions): ReplacePathsResult {
   for (let i = 0; i < files.length; i += 1) {
     const file = files[i]
     const text = readFileSync(file, 'utf8')
+
+    if (!hasAnyPrefix(text, prefixes)) {
+      continue
+    }
+
     const prevCount = resolver.getReplaceCount()
-    const newText = replaceAliasInText(text, file, resolver.absToRel)
+    const newText = applyReplacements(text, collectReplacements(text, file, resolver.absToRel))
 
     if (text !== newText) {
       changedFileCount += 1

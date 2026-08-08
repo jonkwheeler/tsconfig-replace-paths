@@ -1,9 +1,8 @@
-const path = require('path')
-const fs = require('fs')
-const JSON5 = require('json5')
+import * as path from 'path'
+import * as ts from 'typescript'
 
 export interface IRawTSConfig {
-  extends?: string
+  extends?: string | string[]
   compilerOptions?: {
     baseUrl?: string
     outDir?: string
@@ -31,73 +30,43 @@ export function mapPaths(
   return dest
 }
 
-function resolveConfigFile(configDir: string, extendsPath: string): string {
-  const relativeCandidate = path.resolve(configDir, extendsPath)
-  const currentExtension = path.extname(relativeCandidate)
-
-  let localConfigFile = path.format({
-    name: relativeCandidate,
-    ext: currentExtension === '' ? '.json' : '',
-  })
-
-  if (/\.json\.json$/.test(localConfigFile)) {
-    localConfigFile = localConfigFile.replace(/\.json\.json$/, '.json')
-  }
-
-  if (fs.existsSync(localConfigFile)) {
-    return localConfigFile
-  }
-
-  try {
-    return require.resolve(extendsPath, { paths: [configDir] })
-  } catch {
-    return localConfigFile
+function createParseHost(): ts.ParseConfigHost {
+  return {
+    useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
+    // Skip input-file globbing; only compilerOptions are needed here.
+    readDirectory: function () {
+      return []
+    },
+    fileExists: function (fileName: string) {
+      return ts.sys.fileExists(fileName)
+    },
+    readFile: function (fileName: string) {
+      return ts.sys.readFile(fileName)
+    },
   }
 }
 
 export function loadConfig(file: string): ITSConfig {
-  const fileToParse = fs.readFileSync(file)
-  const parsedJsonFile = JSON5.parse(fileToParse)
+  const readResult = ts.readConfigFile(file, ts.sys.readFile)
+  if (readResult.error) {
+    throw new Error(ts.flattenDiagnosticMessageText(readResult.error.messageText, '\n'))
+  }
 
-  const {
-    extends: extendsPath,
-    compilerOptions: { baseUrl, outDir, rootDir, paths } = {
-      baseUrl: undefined,
-      outDir: undefined,
-      rootDir: undefined,
-      paths: undefined,
-    },
-  } = parsedJsonFile as IRawTSConfig
+  const parsed = ts.parseJsonConfigFileContent(readResult.config, createParseHost(), path.dirname(file), undefined, file)
+  const options = parsed.options
 
   const config: ITSConfig = {}
-  if (baseUrl) {
-    config.baseUrl = baseUrl
+  if (options.baseUrl) {
+    config.baseUrl = options.baseUrl
   }
-  if (outDir) {
-    config.outDir = outDir
+  if (options.outDir) {
+    config.outDir = options.outDir
   }
-  if (rootDir) {
-    config.rootDir = rootDir
+  if (options.rootDir) {
+    config.rootDir = options.rootDir
   }
-  if (paths) {
-    config.paths = paths
+  if (options.paths) {
+    config.paths = options.paths
   }
-  if (extendsPath) {
-    const childConfigDirPath = path.dirname(file)
-    const parentExtendedConfigFile = resolveConfigFile(childConfigDirPath, extendsPath)
-    const parentConfigDirPath = path.dirname(parentExtendedConfigFile)
-
-    const parentConfig = loadConfig(parentExtendedConfigFile)
-
-    if (parentConfig.baseUrl) {
-      parentConfig.baseUrl = path.resolve(parentConfigDirPath, parentConfig.baseUrl)
-    }
-
-    return {
-      ...parentConfig,
-      ...config,
-    }
-  }
-
   return config
 }
