@@ -89,8 +89,13 @@
     "@typescript-eslint/parser": "^5.62.0",
     "eslint": "^8.57.1",
     "prettier": "^2.8.8",
-    "release-it": "^14.14.3",
+    "release-it": "^20.2.1",
     "tsx": "^4.23.11"
   },
-  "packageManager": "pnpm@9.15.9"
+  "packageManager": "pnpm@9.15.9",
+  "pnpm": {
+    "overrides": {
+      "undici": "7.29.0"
+    }
+  }
 }
