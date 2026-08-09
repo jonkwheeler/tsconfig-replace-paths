@@ -1,4 +1,4 @@
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import { dirname, join, relative, resolve } from 'path'
 import { AliasEntry, ResolvedContext } from './types.js'
 
@@ -13,15 +13,55 @@ export function toRelative(from: string, target: string): string {
   return (rel.startsWith('.') ? rel : `./${rel}`).replace(/\\/g, '/')
 }
 
-function createExistsCache(): ExistsFn {
-  const cache = new Map<string, boolean>()
-  return function (path: string): boolean {
-    const cached = cache.get(path)
+function addFilesToIndex(dir: string, index: Set<string>): void {
+  let entries
+  try {
+    entries = readdirSync(dir, { withFileTypes: true })
+  } catch {
+    return
+  }
+
+  for (let i = 0; i < entries.length; i += 1) {
+    const entry = entries[i]
+    const entryPath = join(dir, entry.name)
+    if (entry.isDirectory()) {
+      addFilesToIndex(entryPath, index)
+    } else if (entry.isFile()) {
+      index.add(resolve(entryPath))
+    }
+  }
+}
+
+function buildFileIndex(ctx: ResolvedContext): Set<string> {
+  const index = new Set<string>()
+  addFilesToIndex(ctx.usingSrcDir, index)
+  addFilesToIndex(ctx.outPath, index)
+
+  for (let i = 0; i < ctx.aliases.length; i += 1) {
+    const aliasPaths = ctx.aliases[i].aliasPaths
+    for (let j = 0; j < aliasPaths.length; j += 1) {
+      addFilesToIndex(aliasPaths[j], index)
+    }
+  }
+
+  return index
+}
+
+function createExistsFromIndex(index: Set<string>): ExistsFn {
+  const fallthroughCache = new Map<string, boolean>()
+  return function (filePath: string): boolean {
+    const key = resolve(filePath)
+    if (index.has(key)) {
+      return true
+    }
+
+    const cached = fallthroughCache.get(key)
     if (cached !== undefined) {
       return cached
     }
-    const result = existsSync(path)
-    cache.set(path, result)
+
+    const result = existsSync(key)
+    fallthroughCache.set(key, result)
     return result
   }
 }
@@ -126,7 +166,7 @@ export function createAliasResolver(ctx: ResolvedContext): {
   getReplaceCount: () => number
 } {
   let replaceCount = 0
-  const exists = createExistsCache()
+  const exists = createExistsFromIndex(buildFileIndex(ctx))
 
   function absToRel(modulePath: string, outFile: string): string {
     const alen = ctx.aliases.length

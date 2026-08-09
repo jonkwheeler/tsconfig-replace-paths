@@ -211,7 +211,6 @@ export function replacePaths(options: ReplacePathsOptions): ReplacePathsResult {
   })
 
   const changedFiles: string[] = []
-  let changedFileCount = 0
 
   for (let i = 0; i < files.length; i += 1) {
     const file = files[i]
@@ -224,18 +223,20 @@ export function replacePaths(options: ReplacePathsOptions): ReplacePathsResult {
     const prevCount = resolver.getReplaceCount()
     const newText = applyReplacements(text, collectReplacements(text, file, resolver.absToRel))
 
-    if (text !== newText) {
-      changedFileCount += 1
-      changedFiles.push(file)
-      ctx.verboseLog(`${file}: replaced ${resolver.getReplaceCount() - prevCount} paths`)
+    if (text === newText) {
+      continue
+    }
 
-      if (!check) {
-        writeFileSync(file, newText, 'utf8')
-      }
+    changedFiles.push(file)
+    ctx.verboseLog(`${file}: replaced ${resolver.getReplaceCount() - prevCount} paths`)
+
+    if (!check) {
+      writeFileSync(file, newText, 'utf8')
     }
   }
 
   const replaceCount = resolver.getReplaceCount()
+  const changedFileCount = changedFiles.length
 
   if (!quiet) {
     console.log(`Replaced ${replaceCount} paths in ${changedFileCount} files`)
