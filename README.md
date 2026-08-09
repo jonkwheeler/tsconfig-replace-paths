@@ -69,6 +69,48 @@ See `examples/tsconfig.types.cjs.json` and `examples/tsconfig.types.esm.json`.
 }
 ```
 
+### Dual CJS + ESM build
+
+Emit both formats, then rewrite aliases in each output tree:
+
+```json
+"scripts": {
+  "build:cjs": "tsc -p tsconfig.cjs.json && tsconfig-replace-paths -p tsconfig.cjs.json",
+  "build:esm": "tsc -p tsconfig.esm.json && tsconfig-replace-paths -p tsconfig.esm.json",
+  "build": "pnpm run build:cjs && pnpm run build:esm"
+}
+```
+
+Point each tsconfig at its own `outDir` (for example `dist/commonjs` and `dist/esm`).
+
+### Custom project file (`tsconfig.build.json`)
+
+When the compile config is not `tsconfig.json`:
+
+```json
+"scripts": {
+  "build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json"
+}
+```
+
+If you forget `-p`, the CLI error lists matching `tsconfig*.json` files in that directory.
+
+### No `baseUrl`
+
+`paths` without `baseUrl` resolve relative to the tsconfig file (TypeScript >= 4.1):
+
+```json
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "@utils/*": ["./src/utils/*"]
+    }
+  }
+}
+```
+
 ### Node ESM with `.js` extensions in paths
 
 If your tsconfig maps aliases to `.js` paths for Node16/NodeNext ESM:
@@ -86,13 +128,31 @@ If your tsconfig maps aliases to `.js` paths for Node16/NodeNext ESM:
 
 `tsconfig-replace-paths` resolves the matching `.ts` source file and rewrites imports using the `.js` extension in the output.
 
+### `.mjs` / NodeNext-style emit
+
+Output files with `.mjs`, `.cjs`, `.mts`, and `.cts` extensions are processed the same way as `.js`. Use the tsconfig that actually emitted those files:
+
+```sh
+tsc -p tsconfig.esm.json && tsconfig-replace-paths -p tsconfig.esm.json
+```
+
+### Override `--src` / `--out`
+
+When `rootDir` / `outDir` in the tsconfig do not match the tree you need to rewrite:
+
+```sh
+tsconfig-replace-paths -p tsconfig.json --src ./packages/app/src --out ./packages/app/dist
+```
+
+`--src` overrides `compilerOptions.rootDir`. `--out` overrides `compilerOptions.outDir`.
+
 ### Monorepos (NX and similar)
 
 When `rootDir` points at an app but aliases reference shared libs outside that directory, paths are resolved relative to the compiled output file — not back to `.ts` sources.
 
 ### Extending shared configs from npm
 
-Configs like `"extends": "@tsconfig/node16/tsconfig.json"` are resolved from `node_modules` automatically.
+Configs like `"extends": "@tsconfig/node16/tsconfig.json"` are resolved from `node_modules` automatically. Local `extends` and TypeScript 5.0 `extends` arrays work the same way.
 
 ## CI check mode
 
